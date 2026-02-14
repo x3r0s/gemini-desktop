@@ -1,0 +1,35 @@
+import { app } from 'electron'
+import fs from 'fs'
+import path from 'path'
+
+export interface AppSettings {
+  closeToTray: boolean
+  launchAtStartup: boolean
+  alwaysOnTop: boolean
+}
+
+const DEFAULTS: AppSettings = {
+  closeToTray: true,
+  launchAtStartup: false,
+  alwaysOnTop: false
+}
+
+function getSettingsPath(): string {
+  return path.join(app.getPath('userData'), 'settings.json')
+}
+
+export function getSettings(): AppSettings {
+  try {
+    const raw = fs.readFileSync(getSettingsPath(), 'utf-8')
+    return { ...DEFAULTS, ...JSON.parse(raw) }
+  } catch {
+    return { ...DEFAULTS }
+  }
+}
+
+export function updateSettings(partial: Partial<AppSettings>): AppSettings {
+  const current = getSettings()
+  const updated = { ...current, ...partial }
+  fs.writeFileSync(getSettingsPath(), JSON.stringify(updated, null, 2))
+  return updated
+}

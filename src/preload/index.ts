@@ -6,5 +6,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   close: () => ipcRenderer.send('window:close'),
   goBack: () => ipcRenderer.send('view:go-back'),
   goForward: () => ipcRenderer.send('view:go-forward'),
-  reload: () => ipcRenderer.send('view:reload')
+  reload: () => ipcRenderer.send('view:reload'),
+  getSettings: () => ipcRenderer.invoke('settings:get'),
+  updateSettings: (partial: Record<string, unknown>) =>
+    ipcRenderer.invoke('settings:update', partial),
+  onSettingsOpen: (callback: () => void) => {
+    ipcRenderer.on('settings:open', callback)
+    return () => ipcRenderer.removeListener('settings:open', callback)
+  }
 })

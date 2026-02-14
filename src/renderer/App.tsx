@@ -1,16 +1,29 @@
+import { useEffect, useState } from 'react'
 import TitleBar from './components/TitleBar'
+import Settings from './components/Settings'
 
-// On macOS, native traffic lights handle window controls,
-// so the custom titlebar is hidden and Gemini fills the full window.
 const isMac = navigator.userAgent.includes('Macintosh')
 
 function App() {
-  if (isMac) return null
+  const [settingsOpen, setSettingsOpen] = useState(false)
+
+  // Listen for macOS menu "Settings..." (Cmd+,)
+  useEffect(() => {
+    const cleanup = window.electronAPI.onSettingsOpen(() => {
+      setSettingsOpen(true)
+    })
+    return cleanup
+  }, [])
 
   return (
-    <div className="h-8">
-      <TitleBar />
-    </div>
+    <>
+      {!isMac && (
+        <div className="h-8">
+          <TitleBar onSettingsOpen={() => setSettingsOpen(true)} />
+        </div>
+      )}
+      {settingsOpen && <Settings onClose={() => setSettingsOpen(false)} />}
+    </>
   )
 }
 

@@ -12,6 +12,7 @@ import {
 } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import path from 'path'
+import { getSettings, updateSettings, type AppSettings } from './settings'
 
 // Google blocks Chromium-based embedded browsers from signing in.
 // Using a Firefox UA bypasses this detection entirely.
@@ -22,7 +23,6 @@ app.userAgentFallback = FIREFOX_UA
 
 const TITLEBAR_HEIGHT = 32
 const isMac = process.platform === 'darwin'
-const isLinux = process.platform === 'linux'
 
 let mainWindow: BrowserWindow | null = null
 let geminiView: WebContentsView | null = null
@@ -31,9 +31,6 @@ let isQuitting = false
 
 function getIconPath(): string {
   if (app.isPackaged) {
-    if (isMac) {
-      return path.join(process.resourcesPath, 'build', 'icons', 'png', '16x16.png')
-    }
     return path.join(process.resourcesPath, 'build', 'icons', 'png', '16x16.png')
   }
   return path.join(__dirname, '../../build/icons/png/16x16.png')
@@ -55,7 +52,6 @@ function getWindowIconPath(): string {
 function layoutViews(): void {
   if (!mainWindow || !geminiView) return
   const { width, height } = mainWindow.getContentBounds()
-  // On macOS with hidden titlebar, traffic lights are in the titlebar area
   const topOffset = isMac ? 0 : TITLEBAR_HEIGHT
   geminiView.setBounds({ x: 0, y: topOffset, width, height: height - topOffset })
 }
@@ -68,9 +64,15 @@ function isGoogleAuthURL(url: string): boolean {
   )
 }
 
+function applySettings(settings: AppSettings): void {
+  mainWindow?.setAlwaysOnTop(settings.alwaysOnTop)
+  app.setLoginItemSettings({ openAtLogin: settings.launchAtStartup })
+}
+
 function createWindow(): void {
+  const settings = getSettings()
+
   // Persistent session — cookies, localStorage, IndexedDB, and HTTP cache
-  // are all stored under [userData]/Partitions/persist:gemini/
   const geminiSession = session.fromPartition('persist:gemini', { cache: true })
   geminiSession.setUserAgent(FIREFOX_UA)
 
@@ -84,12 +86,13 @@ function createWindow(): void {
     trafficLightPosition: isMac ? { x: 12, y: 10 } : undefined,
     icon: getWindowIconPath(),
     show: false,
+    alwaysOnTop: settings.alwaysOnTop,
     webPreferences: {
       preload: path.join(__dirname, '../preload/index.js')
     }
   })
 
-  // Gemini content view (WebContentsView, not <webview> tag)
+  // Gemini content view
   geminiView = new WebContentsView({
     webPreferences: {
       session: geminiSession,
@@ -100,8 +103,6 @@ function createWindow(): void {
   mainWindow.contentView.addChildView(geminiView)
   geminiView.webContents.loadURL('https://gemini.google.com')
 
-  // Google sign-in popups must open inside the app, not in an external browser.
-  // Other links open in the default system browser.
   geminiView.webContents.setWindowOpenHandler(({ url }) => {
     if (isGoogleAuthURL(url)) {
       return { action: 'allow' }
@@ -110,18 +111,23 @@ function createWindow(): void {
     return { action: 'deny' }
   })
 
-  // Layout on resize
   mainWindow.on('resize', layoutViews)
   mainWindow.once('ready-to-show', () => {
     layoutViews()
     mainWindow?.show()
   })
 
-  // Close → hide to tray
+  // Close behavior based on settings
   mainWindow.on('close', (e) => {
     if (!isQuitting) {
-      e.preventDefault()
-      mainWindow?.hide()
+      const s = getSettings()
+      if (s.closeToTray) {
+        e.preventDefault()
+        mainWindow?.hide()
+      } else {
+        isQuitting = true
+        app.quit()
+      }
     }
   })
 
@@ -169,6 +175,44 @@ function createTray(): void {
   })
 }
 
+function createMacMenu(): void {
+  const template: Electron.MenuItemConstructorOptions[] = [
+    {
+      label: app.name,
+      submenu: [
+        { role: 'about' },
+        { type: 'separator' },
+        {
+          label: 'Settings...',
+          accelerator: 'Cmd+,',
+          click: () => {
+            mainWindow?.webContents.send('settings:open')
+          }
+        },
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideOthers' },
+        { role: 'unhide' },
+        { type: 'separator' },
+        { role: 'quit' }
+      ]
+    },
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        { role: 'selectAll' }
+      ]
+    }
+  ]
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template))
+}
+
 function registerGlobalShortcut(): void {
   globalShortcut.register('CommandOrControl+Shift+G', () => {
     if (mainWindow?.isVisible() && mainWindow.isFocused()) {
@@ -180,7 +224,7 @@ function registerGlobalShortcut(): void {
   })
 }
 
-// Window control IPC handlers
+// Window control IPC
 ipcMain.on('window:minimize', () => mainWindow?.minimize())
 ipcMain.on('window:maximize', () => {
   if (mainWindow?.isMaximized()) {
@@ -191,27 +235,29 @@ ipcMain.on('window:maximize', () => {
 })
 ipcMain.on('window:close', () => mainWindow?.close())
 
-// Navigation IPC handlers for Gemini view
+// Navigation IPC
 ipcMain.on('view:go-back', () => {
-  if (geminiView?.webContents.canGoBack()) {
-    geminiView.webContents.goBack()
-  }
+  if (geminiView?.webContents.canGoBack()) geminiView.webContents.goBack()
 })
 ipcMain.on('view:go-forward', () => {
-  if (geminiView?.webContents.canGoForward()) {
-    geminiView.webContents.goForward()
-  }
+  if (geminiView?.webContents.canGoForward()) geminiView.webContents.goForward()
 })
-ipcMain.on('view:reload', () => {
-  geminiView?.webContents.reload()
+ipcMain.on('view:reload', () => geminiView?.webContents.reload())
+
+// Settings IPC
+ipcMain.handle('settings:get', () => getSettings())
+ipcMain.handle('settings:update', (_e, partial: Partial<AppSettings>) => {
+  const updated = updateSettings(partial)
+  applySettings(updated)
+  return updated
 })
 
 app.whenReady().then(() => {
   createWindow()
   createTray()
   registerGlobalShortcut()
+  if (isMac) createMacMenu()
 
-  // Auto-update via GitHub Releases
   autoUpdater.autoDownload = true
   autoUpdater.autoInstallOnAppQuit = true
   autoUpdater.checkForUpdatesAndNotify().catch(() => {})

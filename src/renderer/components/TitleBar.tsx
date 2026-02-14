@@ -7,11 +7,18 @@ declare global {
       goBack: () => void
       goForward: () => void
       reload: () => void
+      getSettings: () => Promise<any>
+      updateSettings: (partial: Record<string, unknown>) => Promise<any>
+      onSettingsOpen: (callback: () => void) => () => void
     }
   }
 }
 
-function TitleBar() {
+interface TitleBarProps {
+  onSettingsOpen: () => void
+}
+
+function TitleBar({ onSettingsOpen }: TitleBarProps) {
   return (
     <div className="flex items-center justify-between h-8 bg-[#1a1a2e] select-none"
          style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
@@ -51,8 +58,18 @@ function TitleBar() {
         </span>
       </div>
 
-      {/* Right: window controls */}
+      {/* Right: settings + window controls */}
       <div className="flex h-full" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+        <button
+          onClick={onSettingsOpen}
+          className="h-full px-3 text-gray-400 hover:bg-white/10 hover:text-gray-200 transition-colors"
+          title="Settings"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="7" cy="7" r="2.5" />
+            <path d="M7 0.5v1.5M7 12v1.5M0.5 7H2M12 7h1.5M2.05 2.05l1.06 1.06M10.89 10.89l1.06 1.06M2.05 11.95l1.06-1.06M10.89 3.11l1.06-1.06" />
+          </svg>
+        </button>
         <button
           onClick={() => window.electronAPI.minimize()}
           className="h-full px-4 text-gray-300 hover:bg-white/10 transition-colors"
