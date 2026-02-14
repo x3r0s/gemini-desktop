@@ -54,8 +54,9 @@ function isGoogleAuthURL(url: string): boolean {
 }
 
 function createWindow(): void {
-  // Persistent session for Gemini (login state survives restarts)
-  const geminiSession = session.fromPartition('persist:gemini')
+  // Persistent session — cookies, localStorage, IndexedDB, and HTTP cache
+  // are all stored under [userData]/Partitions/persist:gemini/
+  const geminiSession = session.fromPartition('persist:gemini', { cache: true })
   geminiSession.setUserAgent(FIREFOX_UA)
 
   mainWindow = new BrowserWindow({
@@ -75,7 +76,10 @@ function createWindow(): void {
   // Gemini content view (WebContentsView, not <webview> tag)
   geminiView = new WebContentsView({
     webPreferences: {
-      session: geminiSession
+      session: geminiSession,
+      // Allow Service Workers and shared workers for offline caching
+      nodeIntegration: false,
+      contextIsolation: true
     }
   })
   mainWindow.contentView.addChildView(geminiView)
