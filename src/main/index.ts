@@ -21,6 +21,8 @@ const FIREFOX_UA =
 app.userAgentFallback = FIREFOX_UA
 
 const TITLEBAR_HEIGHT = 32
+const isMac = process.platform === 'darwin'
+const isLinux = process.platform === 'linux'
 
 let mainWindow: BrowserWindow | null = null
 let geminiView: WebContentsView | null = null
@@ -28,21 +30,34 @@ let tray: Tray | null = null
 let isQuitting = false
 
 function getIconPath(): string {
-  return app.isPackaged
-    ? path.join(process.resourcesPath, 'build', 'icons', 'png', '16x16.png')
-    : path.join(__dirname, '../../build/icons/png/16x16.png')
+  if (app.isPackaged) {
+    if (isMac) {
+      return path.join(process.resourcesPath, 'build', 'icons', 'png', '16x16.png')
+    }
+    return path.join(process.resourcesPath, 'build', 'icons', 'png', '16x16.png')
+  }
+  return path.join(__dirname, '../../build/icons/png/16x16.png')
 }
 
 function getWindowIconPath(): string {
-  return app.isPackaged
-    ? path.join(process.resourcesPath, 'build', 'icons', 'win', 'icon.ico')
-    : path.join(__dirname, '../../build/icons/win/icon.ico')
+  if (app.isPackaged) {
+    if (process.platform === 'win32') {
+      return path.join(process.resourcesPath, 'build', 'icons', 'win', 'icon.ico')
+    }
+    return path.join(process.resourcesPath, 'build', 'icons', 'png', '256x256.png')
+  }
+  if (process.platform === 'win32') {
+    return path.join(__dirname, '../../build/icons/win/icon.ico')
+  }
+  return path.join(__dirname, '../../build/icons/png/256x256.png')
 }
 
 function layoutViews(): void {
   if (!mainWindow || !geminiView) return
   const { width, height } = mainWindow.getContentBounds()
-  geminiView.setBounds({ x: 0, y: TITLEBAR_HEIGHT, width, height: height - TITLEBAR_HEIGHT })
+  // On macOS with hidden titlebar, traffic lights are in the titlebar area
+  const topOffset = isMac ? 0 : TITLEBAR_HEIGHT
+  geminiView.setBounds({ x: 0, y: topOffset, width, height: height - topOffset })
 }
 
 function isGoogleAuthURL(url: string): boolean {
@@ -64,8 +79,9 @@ function createWindow(): void {
     height: 800,
     minWidth: 800,
     minHeight: 600,
-    frame: false,
-    titleBarStyle: 'hidden',
+    frame: isMac,
+    titleBarStyle: isMac ? 'hiddenInset' : 'hidden',
+    trafficLightPosition: isMac ? { x: 12, y: 10 } : undefined,
     icon: getWindowIconPath(),
     show: false,
     webPreferences: {
@@ -77,7 +93,6 @@ function createWindow(): void {
   geminiView = new WebContentsView({
     webPreferences: {
       session: geminiSession,
-      // Allow Service Workers and shared workers for offline caching
       nodeIntegration: false,
       contextIsolation: true
     }
@@ -211,7 +226,7 @@ app.on('will-quit', () => {
 })
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
+  if (!isMac) {
     app.quit()
   }
 })
