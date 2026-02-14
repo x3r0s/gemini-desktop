@@ -26,9 +26,3 @@ mac:
     - zip
   icon: build/icons/mac/icon.icns
   category: public.app-category.productivity
-linux:
-  target:
-    - AppImage
-    - deb
-  icon: build/icons/png
-  category: Network
