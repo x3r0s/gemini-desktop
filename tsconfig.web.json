@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "composite": true,
+    "outDir": "./dist",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/renderer/**/*.ts", "src/renderer/**/*.tsx"]
+}

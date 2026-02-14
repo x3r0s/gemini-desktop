@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npx electron-vite build)",
+      "Bash(npm run icons:*)",
+      "WebFetch(domain:support.google.com)",
+      "WebSearch",
+      "WebFetch(domain:github.com)"
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+appId: com.gemini.desktop
+productName: Gemini Desktop
+directories:
+  buildResources: build
+  output: release
+files:
+  - out/**/*
+extraResources:
+  - build/icons/png/16x16.png
+  - build/icons/win/icon.ico
+publish:
+  provider: github
+  owner: x3r0s
+  repo: gemini-desktop
+win:
+  target:
+    - nsis
+  icon: build/icons/win/icon.ico
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
