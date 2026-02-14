@@ -28,6 +28,12 @@ jobs:
           node-version: 20
           cache: npm
 
+      - name: Sync package.json version with git tag
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          npm version "$VERSION" --no-git-tag-version
+
       - run: npm ci
 
       - name: Build and publish
