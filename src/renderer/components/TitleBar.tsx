@@ -11,6 +11,8 @@ declare global {
       updateSettings: (partial: Record<string, unknown>) => Promise<any>
       onSettingsOpen: (callback: () => void) => () => void
       setSettingsPanel: (visible: boolean) => Promise<string | null>
+      onUpdateStatus: (callback: (_event: unknown, data: { status: string; progress?: number; version?: string; error?: string }) => void) => () => void
+      installUpdate: () => void
     }
   }
 }

@@ -272,6 +272,9 @@ ipcMain.on('view:go-forward', () => {
 })
 ipcMain.on('view:reload', () => geminiView?.webContents.reload())
 
+// Update IPC
+ipcMain.on('update:install', () => autoUpdater.quitAndInstall())
+
 // Settings IPC
 ipcMain.handle('settings:get', () => getSettings())
 ipcMain.handle('settings:update', (_e, partial: Partial<AppSettings>) => {
@@ -302,7 +305,54 @@ app.whenReady().then(() => {
 
   autoUpdater.autoDownload = true
   autoUpdater.autoInstallOnAppQuit = true
-  autoUpdater.checkForUpdatesAndNotify().catch(() => {})
+
+  let isCheckingForUpdate = false
+
+  autoUpdater.on('update-available', (info) => {
+    mainWindow?.webContents.send('update:status', {
+      status: 'downloading' as const,
+      progress: 0,
+      version: info.version
+    })
+  })
+
+  autoUpdater.on('download-progress', (progress) => {
+    mainWindow?.webContents.send('update:status', {
+      status: 'downloading' as const,
+      progress: Math.round(progress.percent)
+    })
+  })
+
+  autoUpdater.on('update-downloaded', (info) => {
+    isCheckingForUpdate = false
+    mainWindow?.webContents.send('update:status', {
+      status: 'ready' as const,
+      version: info.version
+    })
+  })
+
+  autoUpdater.on('error', (err) => {
+    isCheckingForUpdate = false
+    mainWindow?.webContents.send('update:status', {
+      status: 'error' as const,
+      error: err.message
+    })
+  })
+
+  autoUpdater.on('update-not-available', () => {
+    isCheckingForUpdate = false
+  })
+
+  const checkForUpdates = () => {
+    if (isCheckingForUpdate) return
+    isCheckingForUpdate = true
+    autoUpdater.checkForUpdates().catch(() => {
+      isCheckingForUpdate = false
+    })
+  }
+
+  checkForUpdates()
+  setInterval(checkForUpdates, 30 * 60 * 1000)
 })
 
 app.on('before-quit', () => {
