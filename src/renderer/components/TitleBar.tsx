@@ -10,6 +10,7 @@ declare global {
       getSettings: () => Promise<any>
       updateSettings: (partial: Record<string, unknown>) => Promise<any>
       onSettingsOpen: (callback: () => void) => () => void
+      setSettingsPanel: (visible: boolean) => Promise<string | null>
     }
   }
 }

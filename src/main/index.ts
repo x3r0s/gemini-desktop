@@ -21,6 +21,20 @@ const FIREFOX_UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:134.0) Gecko/20100101 Firefox/134.0'
 app.userAgentFallback = FIREFOX_UA
 
+// Single instance lock — if already running, focus the existing window
+const gotLock = app.requestSingleInstanceLock()
+if (!gotLock) {
+  app.quit()
+} else {
+  app.on('second-instance', () => {
+    if (mainWindow) {
+      if (!mainWindow.isVisible()) mainWindow.show()
+      if (mainWindow.isMinimized()) mainWindow.restore()
+      mainWindow.focus()
+    }
+  })
+}
+
 const TITLEBAR_HEIGHT = 32
 const isMac = process.platform === 'darwin'
 
@@ -250,6 +264,20 @@ ipcMain.handle('settings:update', (_e, partial: Partial<AppSettings>) => {
   const updated = updateSettings(partial)
   applySettings(updated)
   return updated
+})
+
+// Capture Gemini view screenshot, hide it, and show blurred backdrop
+ipcMain.handle('settings:panel', async (_e, visible: boolean) => {
+  if (!mainWindow || !geminiView) return null
+  if (visible) {
+    const image = await geminiView.webContents.capturePage()
+    mainWindow.contentView.removeChildView(geminiView)
+    return image.toDataURL()
+  } else {
+    mainWindow.contentView.addChildView(geminiView)
+    layoutViews()
+    return null
+  }
 })
 
 app.whenReady().then(() => {

@@ -8,6 +8,7 @@ interface AppSettings {
 
 interface SettingsProps {
   onClose: () => void
+  backdrop: string | null
 }
 
 function Toggle({
@@ -35,7 +36,7 @@ function Toggle({
 
 const isMac = navigator.userAgent.includes('Macintosh')
 
-function Settings({ onClose }: SettingsProps) {
+function Settings({ onClose, backdrop }: SettingsProps) {
   const [settings, setSettings] = useState<AppSettings | null>(null)
 
   useEffect(() => {
@@ -51,7 +52,16 @@ function Settings({ onClose }: SettingsProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      {/* Blurred screenshot of Gemini as backdrop */}
+      {backdrop && (
+        <img
+          src={backdrop}
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ filter: 'blur(12px) brightness(0.5)', transform: 'scale(1.05)' }}
+          alt=""
+        />
+      )}
+      <div className="absolute inset-0" onClick={onClose} />
       <div className="relative bg-[#1e1e2e] text-gray-200 rounded-lg shadow-2xl w-[400px] max-h-[80vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">

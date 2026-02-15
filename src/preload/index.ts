@@ -13,5 +13,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onSettingsOpen: (callback: () => void) => {
     ipcRenderer.on('settings:open', callback)
     return () => ipcRenderer.removeListener('settings:open', callback)
-  }
+  },
+  setSettingsPanel: (visible: boolean) => ipcRenderer.invoke('settings:panel', visible) as Promise<string | null>
 })
