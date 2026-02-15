@@ -15,6 +15,7 @@ publish:
   repo: gemini-desktop
   releaseType: release
 win:
+  artifactName: ${productName}-Setup-${version}-${arch}.${ext}
   target:
     - target: nsis
       arch:
