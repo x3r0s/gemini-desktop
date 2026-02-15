@@ -272,8 +272,75 @@ ipcMain.on('view:go-forward', () => {
 })
 ipcMain.on('view:reload', () => geminiView?.webContents.reload())
 
+// GitHub API fallback for dev mode (autoUpdater skips when not packaged)
+async function checkUpdateViaGitHub(): Promise<string | null> {
+  try {
+    const https = await import('https')
+    return new Promise((resolve) => {
+      const options = {
+        hostname: 'api.github.com',
+        path: '/repos/x3r0s/gemini-desktop/releases/latest',
+        headers: { 'User-Agent': 'gemini-desktop' }
+      }
+      https.get(options, (res) => {
+        let data = ''
+        res.on('data', (chunk: string) => (data += chunk))
+        res.on('end', () => {
+          try {
+            const release = JSON.parse(data)
+            const latestVersion = (release.tag_name || '').replace(/^v/, '')
+            const currentVersion = app.getVersion()
+            if (latestVersion && latestVersion !== currentVersion) {
+              resolve(latestVersion)
+            } else {
+              resolve(null)
+            }
+          } catch {
+            resolve(null)
+          }
+        })
+      }).on('error', () => resolve(null))
+    })
+  } catch {
+    return null
+  }
+}
+
 // Update IPC
 ipcMain.on('update:install', () => autoUpdater.quitAndInstall())
+ipcMain.on('update:download', () => {
+  if (app.isPackaged) {
+    autoUpdater.downloadUpdate()
+  } else {
+    // In dev mode, open the releases page
+    shell.openExternal('https://github.com/x3r0s/gemini-desktop/releases/latest')
+  }
+})
+ipcMain.handle('update:check', async () => {
+  if (app.isPackaged) {
+    try {
+      const result = await autoUpdater.checkForUpdates()
+      return result?.updateInfo?.version ?? null
+    } catch {
+      return null
+    }
+  } else {
+    // Dev mode: use GitHub API
+    const latestVersion = await checkUpdateViaGitHub()
+    if (latestVersion) {
+      mainWindow?.webContents.send('update:status', {
+        status: 'available' as const,
+        version: latestVersion
+      })
+    } else {
+      mainWindow?.webContents.send('update:status', {
+        status: 'up-to-date' as const
+      })
+    }
+    return latestVersion
+  }
+})
+ipcMain.handle('app:version', () => app.getVersion())
 
 // Settings IPC
 ipcMain.handle('settings:get', () => getSettings())
@@ -303,52 +370,78 @@ app.whenReady().then(() => {
   registerGlobalShortcut()
   if (isMac) createMacMenu()
 
-  autoUpdater.autoDownload = true
-  autoUpdater.autoInstallOnAppQuit = true
-
   let isCheckingForUpdate = false
 
-  autoUpdater.on('update-available', (info) => {
-    mainWindow?.webContents.send('update:status', {
-      status: 'downloading' as const,
-      progress: 0,
-      version: info.version
+  if (app.isPackaged) {
+    // Production: use autoUpdater
+    autoUpdater.autoDownload = false
+    autoUpdater.autoInstallOnAppQuit = true
+
+    autoUpdater.on('update-available', (info) => {
+      mainWindow?.webContents.send('update:status', {
+        status: 'available' as const,
+        version: info.version
+      })
     })
-  })
 
-  autoUpdater.on('download-progress', (progress) => {
-    mainWindow?.webContents.send('update:status', {
-      status: 'downloading' as const,
-      progress: Math.round(progress.percent)
+    autoUpdater.on('download-progress', (progress) => {
+      mainWindow?.webContents.send('update:status', {
+        status: 'downloading' as const,
+        progress: Math.round(progress.percent)
+      })
     })
-  })
 
-  autoUpdater.on('update-downloaded', (info) => {
-    isCheckingForUpdate = false
-    mainWindow?.webContents.send('update:status', {
-      status: 'ready' as const,
-      version: info.version
+    autoUpdater.on('update-downloaded', (info) => {
+      isCheckingForUpdate = false
+      mainWindow?.webContents.send('update:status', {
+        status: 'ready' as const,
+        version: info.version
+      })
     })
-  })
 
-  autoUpdater.on('error', (err) => {
-    isCheckingForUpdate = false
-    mainWindow?.webContents.send('update:status', {
-      status: 'error' as const,
-      error: err.message
+    autoUpdater.on('error', (err) => {
+      isCheckingForUpdate = false
+      mainWindow?.webContents.send('update:status', {
+        status: 'error' as const,
+        error: err.message
+      })
     })
-  })
 
-  autoUpdater.on('update-not-available', () => {
-    isCheckingForUpdate = false
-  })
+    autoUpdater.on('update-not-available', () => {
+      isCheckingForUpdate = false
+      mainWindow?.webContents.send('update:status', {
+        status: 'up-to-date' as const
+      })
+    })
+  }
 
-  const checkForUpdates = () => {
+  const checkForUpdates = async () => {
     if (isCheckingForUpdate) return
     isCheckingForUpdate = true
-    autoUpdater.checkForUpdates().catch(() => {
+
+    if (app.isPackaged) {
+      autoUpdater.checkForUpdates().catch(() => {
+        isCheckingForUpdate = false
+      })
+    } else {
+      // Dev mode: GitHub API
+      try {
+        const latestVersion = await checkUpdateViaGitHub()
+        if (latestVersion) {
+          mainWindow?.webContents.send('update:status', {
+            status: 'available' as const,
+            version: latestVersion
+          })
+        } else {
+          mainWindow?.webContents.send('update:status', {
+            status: 'up-to-date' as const
+          })
+        }
+      } catch {
+        // silently ignore in dev
+      }
       isCheckingForUpdate = false
-    })
+    }
   }
 
   checkForUpdates()

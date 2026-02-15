@@ -15,6 +15,9 @@ declare global {
       setSettingsPanel: (visible: boolean) => Promise<string | null>
       onUpdateStatus: (callback: (_event: unknown, data: { status: string; progress?: number; version?: string; error?: string }) => void) => () => void
       installUpdate: () => void
+      checkForUpdate: () => Promise<string | null>
+      downloadUpdate: () => void
+      getAppVersion: () => Promise<string>
     }
   }
 }
@@ -26,11 +29,11 @@ interface TitleBarProps {
 function TitleBar({ onSettingsOpen }: TitleBarProps) {
   return (
     <div className="flex items-center justify-between h-8 bg-[#1a1a2e] select-none"
-         style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
+      style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
       {/* Left: logo + title + navigation */}
       <div className="flex items-center h-full">
         <div className="flex items-center pl-3 pr-2"
-             style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
+          style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
           <img src={appIcon} alt="Gemini Desktop" className="w-4 h-4" draggable={false} />
           <span className="text-white text-sm font-medium pl-2">
             Gemini Desktop

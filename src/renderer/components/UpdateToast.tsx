@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 
 export interface UpdateStatus {
-  status: 'downloading' | 'ready' | 'error'
+  status: 'available' | 'downloading' | 'ready' | 'up-to-date' | 'error'
   progress?: number
   version?: string
   error?: string
