@@ -13,6 +13,7 @@ publish:
   provider: github
   owner: x3r0s
   repo: gemini-desktop
+  releaseType: release
 win:
   target:
     - target: nsis
