@@ -6,12 +6,20 @@ export interface AppSettings {
   closeToTray: boolean
   launchAtStartup: boolean
   alwaysOnTop: boolean
+  language?: string
 }
 
 const DEFAULTS: AppSettings = {
   closeToTray: true,
   launchAtStartup: false,
-  alwaysOnTop: false
+  alwaysOnTop: false,
+  language: getDefaultLanguage()
+}
+
+function getDefaultLanguage(): string {
+  const supportedLangs = ['en', 'ko', 'zh', 'ja']
+  const locale = app.getLocale().split('-')[0] // 'ko-KR' -> 'ko'
+  return supportedLangs.includes(locale) ? locale : 'en'
 }
 
 function getSettingsPath(): string {

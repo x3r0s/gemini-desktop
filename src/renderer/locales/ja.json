@@ -1,0 +1,42 @@
+{
+    "updateModal": {
+        "title": "アップデート可能",
+        "version": "バージョン {{version}} が利用可能",
+        "updateNow": "今すぐ更新",
+        "later": "後で",
+        "downloading": "ダウンロード中...",
+        "progress": "{{percent}}% 完了",
+        "ready": "アップデート準備完了",
+        "restart": "今すぐ再起動"
+    },
+    "settings": {
+        "title": "設定",
+        "closeToTray": "トレイに最小化",
+        "launchAtStartup": "スタートアップに登録",
+        "alwaysOnTop": "常に最前面に表示",
+        "on": "オン",
+        "off": "オフ",
+        "language": "言語",
+        "update": "アップデート",
+        "version": "現在のバージョン",
+        "checkUpdate": "更新を確認",
+        "checking": "更新を確認中...",
+        "upToDate": "最新バージョンです",
+        "available": "新しいバージョンがあります",
+        "download": "ダウンロード",
+        "downloading": "ダウンロード中",
+        "restart": "再起動"
+    },
+    "updateToast": {
+        "downloading": "アップデートをダウンロード中...",
+        "ready": "アップデート準備完了",
+        "install": "再起動してインストール",
+        "error": "アップデートエラー: {{error}}"
+    },
+    "languages": {
+        "ko": "한국어",
+        "en": "English",
+        "zh": "中文",
+        "ja": "日本語"
+    }
+}

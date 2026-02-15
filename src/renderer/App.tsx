@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
+import { I18nextProvider } from 'react-i18next'
+import i18n from './i18n'
 import TitleBar from './components/TitleBar'
 import Settings from './components/Settings'
 import UpdateToast, { type UpdateStatus } from './components/UpdateToast'
@@ -8,12 +10,20 @@ const isMac = navigator.userAgent.includes('Macintosh')
 
 function App() {
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [backdrop, setBackdrop] = useState<string | null>(null)
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus | null>(null)
   const [updateModal, setUpdateModal] = useState<UpdateInfo | null>(null)
 
   const dismissUpdate = useCallback(() => setUpdateStatus(null), [])
   const dismissModal = useCallback(() => setUpdateModal(null), [])
+
+  // Load saved language setting
+  useEffect(() => {
+    window.electronAPI.getSettings().then((settings) => {
+      if (settings.language && settings.language !== i18n.language) {
+        i18n.changeLanguage(settings.language)
+      }
+    })
+  }, [])
 
   // Listen for update status from main process
   useEffect(() => {
@@ -73,15 +83,13 @@ function App() {
   }, [updateModal])
 
   const openSettings = async () => {
-    const dataUrl = await window.electronAPI.setSettingsPanel(true)
-    setBackdrop(dataUrl)
+    await window.electronAPI.setSettingsPanel(true)
     setSettingsOpen(true)
   }
 
   const closeSettings = async () => {
     await window.electronAPI.setSettingsPanel(false)
     setSettingsOpen(false)
-    setBackdrop(null)
   }
 
   // Listen for macOS menu "Settings..." (Cmd+,)
@@ -93,16 +101,16 @@ function App() {
   }, [])
 
   return (
-    <>
+    <I18nextProvider i18n={i18n}>
       {!isMac && (
         <div className="h-8">
           <TitleBar onSettingsOpen={openSettings} />
         </div>
       )}
-      {settingsOpen && <Settings onClose={closeSettings} backdrop={backdrop} titleBarHeight={isMac ? 0 : 32} />}
+      {settingsOpen && <Settings onClose={closeSettings} titleBarHeight={isMac ? 0 : 32} />}
       {updateModal && !settingsOpen && <UpdateModal update={updateModal} onDismiss={dismissModal} />}
       {updateStatus && !updateModal && !settingsOpen && <UpdateToast update={updateStatus} onDismiss={dismissUpdate} />}
-    </>
+    </I18nextProvider>
   )
 }
 

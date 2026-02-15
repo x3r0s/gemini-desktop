@@ -1,0 +1,45 @@
+{
+    "updateModal": {
+        "title": "New Update Available",
+        "version": "Version {{version}} is available",
+        "updateNow": "Update Now",
+        "later": "Later",
+        "downloading": "Downloading...",
+        "progress": "{{percent}}% complete",
+        "ready": "Update ready to install",
+        "restart": "Restart Now"
+    },
+    "settings": {
+        "title": "Settings",
+        "closeToTray": "Close to tray",
+        "launchAtStartup": "Launch at startup",
+        "alwaysOnTop": "Always on top",
+        "on": "On",
+        "off": "Off",
+        "language": "Language",
+        "update": "Update",
+        "version": "Current version",
+        "checkUpdate": "Check for updates",
+        "checking": "Checking for updates...",
+        "upToDate": "Already up to date",
+        "available": "New version available",
+        "download": "Download",
+        "downloading": "Downloading",
+        "restart": "Restart",
+        "system": "System",
+        "localization": "Localization",
+        "information": "Information"
+    },
+    "updateToast": {
+        "downloading": "Downloading update...",
+        "ready": "Update ready to install",
+        "install": "Restart to install",
+        "error": "Update error: {{error}}"
+    },
+    "languages": {
+        "ko": "한국어",
+        "en": "English",
+        "zh": "中文",
+        "ja": "日本語"
+    }
+}
