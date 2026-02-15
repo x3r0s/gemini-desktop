@@ -26,10 +26,14 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 22
+          cache: pnpm
 
       - name: Sync package.json version with git tag
         shell: bash
@@ -37,9 +41,9 @@ jobs:
           VERSION="${GITHUB_REF_NAME#v}"
           npm version "$VERSION" --no-git-tag-version --allow-same-version
 
-      - run: npm ci
+      - run: pnpm install --frozen-lockfile
 
       - name: Build and publish
-        run: npm run package -- --publish always
+        run: pnpm run package -- --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
