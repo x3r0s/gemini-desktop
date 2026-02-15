@@ -9,6 +9,7 @@ interface AppSettings {
 interface SettingsProps {
   onClose: () => void
   backdrop: string | null
+  titleBarHeight?: number
 }
 
 function Toggle({
@@ -36,7 +37,7 @@ function Toggle({
 
 const isMac = navigator.userAgent.includes('Macintosh')
 
-function Settings({ onClose, backdrop }: SettingsProps) {
+function Settings({ onClose, backdrop, titleBarHeight = 0 }: SettingsProps) {
   const [settings, setSettings] = useState<AppSettings | null>(null)
 
   useEffect(() => {
@@ -51,13 +52,14 @@ function Settings({ onClose, backdrop }: SettingsProps) {
   if (!settings) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed left-0 right-0 bottom-0 z-50 flex items-center justify-center"
+         style={{ top: titleBarHeight }}>
       {/* Blurred screenshot of Gemini as backdrop */}
       {backdrop && (
         <img
           src={backdrop}
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ filter: 'blur(12px) brightness(0.5)', transform: 'scale(1.05)' }}
+          style={{ filter: 'blur(12px) brightness(0.5)' }}
           alt=""
         />
       )}

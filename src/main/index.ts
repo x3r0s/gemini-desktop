@@ -131,6 +131,20 @@ function createWindow(): void {
     mainWindow?.show()
   })
 
+  // Ctrl+R / Cmd+R to reload Gemini view (not the titlebar)
+  mainWindow.webContents.on('before-input-event', (_e, input) => {
+    if (
+      input.type === 'keyDown' &&
+      input.key.toLowerCase() === 'r' &&
+      (input.control || input.meta) &&
+      !input.alt &&
+      !input.shift
+    ) {
+      geminiView?.webContents.reload()
+      _e.preventDefault()
+    }
+  })
+
   // Close behavior based on settings
   mainWindow.on('close', (e) => {
     if (!isQuitting) {

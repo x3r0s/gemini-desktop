@@ -35,7 +35,7 @@ function App() {
           <TitleBar onSettingsOpen={openSettings} />
         </div>
       )}
-      {settingsOpen && <Settings onClose={closeSettings} backdrop={backdrop} />}
+      {settingsOpen && <Settings onClose={closeSettings} backdrop={backdrop} titleBarHeight={isMac ? 0 : 32} />}
     </>
   )
 }
