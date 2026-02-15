@@ -15,7 +15,10 @@ publish:
   repo: gemini-desktop
 win:
   target:
-    - nsis
+    - target: nsis
+      arch:
+        - x64
+        - arm64
   icon: build/icons/win/icon.ico
 nsis:
   oneClick: false
