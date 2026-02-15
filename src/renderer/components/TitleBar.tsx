@@ -1,3 +1,5 @@
+import appIcon from '../../assets/icon.png'
+
 declare global {
   interface Window {
     electronAPI: {
@@ -25,40 +27,45 @@ function TitleBar({ onSettingsOpen }: TitleBarProps) {
   return (
     <div className="flex items-center justify-between h-8 bg-[#1a1a2e] select-none"
          style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
-      {/* Left: navigation + title */}
-      <div className="flex items-center h-full" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
-        <button
-          onClick={() => window.electronAPI.goBack()}
-          className="h-full px-2.5 text-gray-400 hover:bg-white/10 hover:text-gray-200 transition-colors"
-          title="Back"
-        >
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="8,1 3,6 8,11" />
-          </svg>
-        </button>
-        <button
-          onClick={() => window.electronAPI.goForward()}
-          className="h-full px-2.5 text-gray-400 hover:bg-white/10 hover:text-gray-200 transition-colors"
-          title="Forward"
-        >
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="4,1 9,6 4,11" />
-          </svg>
-        </button>
-        <button
-          onClick={() => window.electronAPI.reload()}
-          className="h-full px-2.5 text-gray-400 hover:bg-white/10 hover:text-gray-200 transition-colors"
-          title="Reload"
-        >
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M1,6 A5,5 0 1,1 3,10" />
-            <polyline points="1,10 3,10 3,8" />
-          </svg>
-        </button>
-        <span className="text-white text-sm font-medium pl-2"
-              style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
-          Gemini Desktop
-        </span>
+      {/* Left: logo + title + navigation */}
+      <div className="flex items-center h-full">
+        <div className="flex items-center pl-3 pr-2"
+             style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
+          <img src={appIcon} alt="Gemini Desktop" className="w-4 h-4" draggable={false} />
+          <span className="text-white text-sm font-medium pl-2">
+            Gemini Desktop
+          </span>
+        </div>
+        <div className="flex items-center h-full" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+          <button
+            onClick={() => window.electronAPI.goBack()}
+            className="h-full px-2.5 text-gray-400 hover:bg-white/10 hover:text-gray-200 transition-colors"
+            title="Back"
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="8,1 3,6 8,11" />
+            </svg>
+          </button>
+          <button
+            onClick={() => window.electronAPI.goForward()}
+            className="h-full px-2.5 text-gray-400 hover:bg-white/10 hover:text-gray-200 transition-colors"
+            title="Forward"
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="4,1 9,6 4,11" />
+            </svg>
+          </button>
+          <button
+            onClick={() => window.electronAPI.reload()}
+            className="h-full px-2.5 text-gray-400 hover:bg-white/10 hover:text-gray-200 transition-colors"
+            title="Reload"
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M1,6 A5,5 0 1,1 3,10" />
+              <polyline points="1,10 3,10 3,8" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Right: settings + window controls */}
