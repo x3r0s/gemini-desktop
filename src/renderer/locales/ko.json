@@ -28,7 +28,13 @@
         "restart": "재시작",
         "system": "시스템",
         "localization": "언어 설정",
-        "information": "정보"
+        "information": "정보",
+        "account": "계정",
+        "logout": "로그아웃",
+        "logoutDesc": "모든 세션 데이터를 삭제하고 Google 계정에서 로그아웃합니다",
+        "logoutConfirm": "정말 로그아웃하시겠습니까?",
+        "logoutConfirmBtn": "로그아웃",
+        "logoutCancel": "취소"
     },
     "updateToast": {
         "downloading": "업데이트 다운로드 중...",

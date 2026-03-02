@@ -62,6 +62,13 @@ const Icons = {
       <path d="M1 20v-6h6" />
       <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
     </svg>
+  ),
+  Logout: (props: any) => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
   )
 }
 
@@ -121,6 +128,7 @@ function Settings({ onClose, titleBarHeight = 0 }: SettingsProps) {
   const [appVersion, setAppVersion] = useState<string>('')
   const [updateState, setUpdateState] = useState<UpdateState>({ phase: 'idle' })
   const [activeTab, setActiveTab] = useState<'general' | 'about'>('general')
+  const [logoutConfirm, setLogoutConfirm] = useState(false)
 
   useEffect(() => {
     window.electronAPI.getSettings().then((s) => {
@@ -306,6 +314,56 @@ function Settings({ onClose, titleBarHeight = 0 }: SettingsProps) {
                           </option>
                         ))}
                       </select>
+                    </div>
+                  </div>
+
+                  {/* Account Section */}
+                  <div className="space-y-6 pt-4">
+                    <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">{t('settings.account')}</h3>
+
+                    <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-base font-medium text-gray-200">{t('settings.logout')}</div>
+                          <div className="text-sm text-gray-400 mt-1">
+                            {t('settings.logoutDesc')}
+                          </div>
+                        </div>
+                        {!logoutConfirm ? (
+                          <button
+                            onClick={() => setLogoutConfirm(true)}
+                            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg transition-colors"
+                          >
+                            <Icons.Logout />
+                            {t('settings.logout')}
+                          </button>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-red-400 mr-2">{t('settings.logoutConfirm')}</span>
+                            <button
+                              onClick={async () => {
+                                try {
+                                  await window.electronAPI.logout()
+                                  setLogoutConfirm(false)
+                                  onClose()
+                                } catch (error) {
+                                  console.error('Logout failed:', error)
+                                  setLogoutConfirm(false)
+                                }
+                              }}
+                              className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-500 rounded-lg transition-colors"
+                            >
+                              {t('settings.logoutConfirmBtn')}
+                            </button>
+                            <button
+                              onClick={() => setLogoutConfirm(false)}
+                              className="px-4 py-2 text-sm font-medium text-gray-400 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+                            >
+                              {t('settings.logoutCancel')}
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </>
