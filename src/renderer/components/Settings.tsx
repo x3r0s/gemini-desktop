@@ -342,9 +342,14 @@ function Settings({ onClose, titleBarHeight = 0 }: SettingsProps) {
                             <span className="text-sm text-red-400 mr-2">{t('settings.logoutConfirm')}</span>
                             <button
                               onClick={async () => {
-                                await window.electronAPI.logout()
-                                setLogoutConfirm(false)
-                                onClose()
+                                try {
+                                  await window.electronAPI.logout()
+                                  setLogoutConfirm(false)
+                                  onClose()
+                                } catch (error) {
+                                  console.error('Logout failed:', error)
+                                  setLogoutConfirm(false)
+                                }
                               }}
                               className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-500 rounded-lg transition-colors"
                             >
