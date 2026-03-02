@@ -22,5 +22,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   installUpdate: () => ipcRenderer.send('update:install'),
   checkForUpdate: () => ipcRenderer.invoke('update:check') as Promise<string | null>,
   downloadUpdate: () => ipcRenderer.send('update:download'),
-  getAppVersion: () => ipcRenderer.invoke('app:version') as Promise<string>
+  getAppVersion: () => ipcRenderer.invoke('app:version') as Promise<string>,
+  logout: () => ipcRenderer.invoke('session:logout') as Promise<void>
 })

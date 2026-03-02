@@ -350,6 +350,13 @@ ipcMain.handle('settings:update', (_e, partial: Partial<AppSettings>) => {
   return updated
 })
 
+// Session logout — clear all stored data and reload Gemini
+ipcMain.handle('session:logout', async () => {
+  const geminiSession = session.fromPartition('persist:gemini', { cache: true })
+  await geminiSession.clearStorageData()
+  geminiView?.webContents.loadURL('https://gemini.google.com')
+})
+
 // Capture Gemini view screenshot, hide it, and show blurred backdrop
 ipcMain.handle('settings:panel', async (_e, visible: boolean) => {
   if (!mainWindow || !geminiView) return null

@@ -25,7 +25,13 @@
         "available": "新しいバージョンがあります",
         "download": "ダウンロード",
         "downloading": "ダウンロード中",
-        "restart": "再起動"
+        "restart": "再起動",
+        "account": "アカウント",
+        "logout": "ログアウト",
+        "logoutDesc": "すべてのセッションデータを削除し、Googleアカウントからログアウトします",
+        "logoutConfirm": "本当にログアウトしますか？",
+        "logoutConfirmBtn": "ログアウト",
+        "logoutCancel": "キャンセル"
     },
     "updateToast": {
         "downloading": "アップデートをダウンロード中...",

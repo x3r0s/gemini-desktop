@@ -18,6 +18,7 @@ declare global {
       checkForUpdate: () => Promise<string | null>
       downloadUpdate: () => void
       getAppVersion: () => Promise<string>
+      logout: () => Promise<void>
     }
   }
 }

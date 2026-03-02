@@ -28,7 +28,13 @@
         "restart": "Restart",
         "system": "System",
         "localization": "Localization",
-        "information": "Information"
+        "information": "Information",
+        "account": "Account",
+        "logout": "Sign Out",
+        "logoutDesc": "Clear all session data and sign out of Google",
+        "logoutConfirm": "Are you sure?",
+        "logoutConfirmBtn": "Sign Out",
+        "logoutCancel": "Cancel"
     },
     "updateToast": {
         "downloading": "Downloading update...",
