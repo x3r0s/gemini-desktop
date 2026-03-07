@@ -15,11 +15,52 @@ import path from 'path'
 import { getSettings, updateSettings, type AppSettings } from './settings'
 
 // Google blocks Chromium-based embedded browsers from signing in.
-// Using a Firefox UA bypasses this detection entirely.
-// ref: https://github.com/nativefier/nativefier/issues/831
-const FIREFOX_UA =
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:134.0) Gecko/20100101 Firefox/134.0'
-app.userAgentFallback = FIREFOX_UA
+// Firefox UA often fails now due to JS fingerprinting mismatches in Chromium,
+// but we will dynamically fetch the latest Firefox version from Mozilla's API just in case.
+const FALLBACK_FIREFOX_VERSION = '148.0'
+let firefoxVersion = FALLBACK_FIREFOX_VERSION
+
+function getDynamicUA() {
+  return `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:${firefoxVersion}) Gecko/20100101 Firefox/${firefoxVersion}`
+}
+
+app.userAgentFallback = getDynamicUA()
+
+// Fetch latest Firefox version early
+async function updateFirefoxVersion() {
+  try {
+    const { net } = require('electron')
+    const request = net.request('https://product-details.mozilla.org/1.0/firefox_versions.json')
+    request.on('response', (response: any) => {
+      let data = ''
+      response.on('data', (chunk: any) => {
+        data += chunk
+      })
+      response.on('end', () => {
+        try {
+          const versions = JSON.parse(data)
+          if (versions.LATEST_FIREFOX_VERSION) {
+            firefoxVersion = versions.LATEST_FIREFOX_VERSION
+            app.userAgentFallback = getDynamicUA()
+            console.log('Updated Firefox UA version to:', firefoxVersion)
+            // If the session was already created, we should also update its UA.
+            try {
+              const geminiSession = session.fromPartition('persist:gemini', { cache: true })
+              geminiSession.setUserAgent(getDynamicUA())
+            } catch (e) {
+              // session might not be ready yet, ignored
+            }
+          }
+        } catch (e) {
+          console.error('Failed to parse Mozilla versions API', e)
+        }
+      })
+    })
+    request.end()
+  } catch (error) {
+    console.error('Failed to fetch Firefox version:', error)
+  }
+}
 
 // Single instance lock — if already running, focus the existing window
 const gotLock = app.requestSingleInstanceLock()
@@ -88,7 +129,7 @@ function createWindow(): void {
 
   // Persistent session — cookies, localStorage, IndexedDB, and HTTP cache
   const geminiSession = session.fromPartition('persist:gemini', { cache: true })
-  geminiSession.setUserAgent(FIREFOX_UA)
+  geminiSession.setUserAgent(getDynamicUA())
 
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -379,6 +420,8 @@ ipcMain.handle('settings:panel', async (_e, visible: boolean) => {
 })
 
 app.whenReady().then(() => {
+  // Try calling updateFirefoxVersion before creating the window to have it ready
+  updateFirefoxVersion()
   createWindow()
   createTray()
   registerGlobalShortcut()
